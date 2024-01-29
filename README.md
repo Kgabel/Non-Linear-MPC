@@ -18,14 +18,7 @@ We consider the car dynamics with lumped rear and front tire forces.
 
 For simplification, we consider the positions and orientation in the world coordinates.  
 
-\begin{aligned}
-\dot{U}_x & =\frac{F_{x_f} \cos \delta-F_{y_f} \sin \delta+F_{x_r}-F_d}{m}+r U_y \\
-\dot{U}_y & =\frac{F_{y_f} \cos \delta+F_{x_f} \sin \delta+F_{y_r}+F_b}{m}-r U_x \\
-\dot{r} & =\frac{a\left(F_{y_f} \cos \delta+F_{x_f} \sin \delta\right)-b F_{y_r}}{I_{z z}} \\
-\dot{x} & = \cos(\phi)U_x - \sin(\phi)U_y  \\
-\dot{y} & = \sin(\phi)U_x + \sin(\phi)U_y   \\ 
-\dot{\phi} & =r  . \\
-\end{aligned}
+<p align="center"> <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cbegin%7Baligned%7D%5Cdot%7BU%7D_x%26%3D%5Cfrac%7BF_%7Bx_f%7D%5Ccos%5Cdelta-F_%7By_f%7D%5Csin%5Cdelta%2BF_%7Bx_r%7D-F_d%7D%7Bm%7D%2BrU_y%5C%5C%5Cdot%7BU%7D_y%26%3D%5Cfrac%7BF_%7By_f%7D%5Ccos%5Cdelta%2BF_%7Bx_f%7D%5Csin%5Cdelta%2BF_%7By_r%7D%2BF_b%7D%7Bm%7D-rU_x%5C%5C%5Cdot%7Br%7D%26%3D%5Cfrac%7Ba%5Cleft(F_%7By_f%7D%5Ccos%5Cdelta%2BF_%7Bx_f%7D%5Csin%5Cdelta%5Cright)-bF_%7By_r%7D%7D%7BI_%7Bzz%7D%7D%5C%5C%5Cdot%7Bx%7D%26%3D%5Ccos%28%5Cphi%29U_x-%5Csin%28%5Cphi%29U_y%5C%5C%5Cdot%7By%7D%26%3D%5Csin%28%5Cphi%29U_x%2B%5Csin%28%5Cphi%29U_y%5C%5C%5Cdot%7B%5Cphi%7D%26%3Dr.%5C%5C%5Cend%7Baligned%7D"> </p>
 
 
 
