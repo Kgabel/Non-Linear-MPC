@@ -3,6 +3,7 @@
 In this, we will design a nonlinear MPC controller to let the car to travel as far as possible in positive $x$ direction in a fixed time interval. 
 We are supposed to keep close to $y = 0$, while avoiding the obstacle located at $x = 500, y = 0$. 
 The key to this problem is to use as much tire forces as possible, while ensuring that the car does not lose control. 
+This repository contains an implementation of Nonlinear Model Predictive Control (NMPC) for controlling the dynamics of a car. NMPC is a powerful technique for controlling systems with nonlinear dynamics and constraints. In this case, we are using NMPC to control the motion of a car, taking into account various constraints such as tire forces and friction cone constraints.
 
 # Car Dynamics
 
@@ -10,6 +11,468 @@ The key to this problem is to use as much tire forces as possible, while ensurin
 <img src="CarModel.png" width="1200">
 </div>
 
+Car State and Control Input
+The state of the car at each time step 
+�
+k is represented as:
+
+�
+�
+:
+=
+[
+�
+�
+,
+�
+,
+�
+�
+,
+�
+,
+�
+�
+,
+�
+�
+,
+�
+�
+,
+�
+�
+]
+,
+�
+=
+0
+,
+1
+,
+…
+,
+�
+s 
+k
+​
+ :=[U 
+x,k
+​
+ ,U 
+y,k
+​
+ ,r 
+k
+​
+ ,x 
+k
+​
+ ,y 
+k
+​
+ ,ϕ 
+k
+​
+ ],k=0,1,…,N
+The control input of the car at each time step 
+�
+k is represented as:
+
+�
+�
+:
+=
+[
+�
+�
+,
+�
+,
+�
+�
+]
+,
+�
+=
+0
+,
+1
+,
+…
+,
+�
+−
+1
+u 
+k
+​
+ :=[F 
+x,k
+​
+ ,δ 
+k
+​
+ ],k=0,1,…,N−1
+Auxiliary Variables
+Four auxiliary variables are introduced for each step:
+
+�
+�
+:
+=
+[
+�
+�
+�
+,
+�
+,
+�
+�
+�
+,
+�
+,
+�
+�
+�
+,
+�
+�
+�
+]
+,
+�
+=
+0
+,
+1
+,
+…
+,
+�
+−
+1
+z 
+k
+​
+ :=[F 
+y 
+f
+​
+ ,k
+​
+ ,F 
+y 
+r
+​
+ ,k
+​
+ ,z 
+μ 
+f
+​
+ 
+​
+ ,z 
+μ 
+r
+​
+ 
+​
+ ],k=0,1,…,N−1
+The first two variables, 
+�
+�
+�
+,
+�
+F 
+y 
+f
+​
+ ,k
+​
+  and 
+�
+�
+�
+,
+�
+F 
+y 
+r
+​
+ ,k
+​
+ , are used to enforce the tire force constraints, related to traction force 
+�
+�
+F 
+x
+​
+  and steering angle 
+�
+δ via the tire model. The last two variables, 
+�
+�
+�
+z 
+μ 
+f
+​
+ 
+​
+  and 
+�
+�
+�
+z 
+μ 
+r
+​
+ 
+​
+ , are used to slack the friction cone constraints.
+
+NMPC Problem Formulation
+The NMPC problem takes the following form:
+
+�
+0
+∗
+(
+�
+init
+)
+=
+min
+⁡
+�
+�
+,
+�
+�
+,
+�
+�
+ 
+�
+(
+�
+�
+)
++
+∑
+�
+=
+0
+�
+−
+1
+�
+(
+�
+�
+,
+�
+�
+,
+�
+�
+)
+s.t. 
+�
+�
++
+1
+=
+�
+(
+�
+�
+,
+�
+�
+,
+�
+�
+)
+,
+�
+=
+0
+,
+…
+,
+�
+−
+1
+,
+0
+=
+TireModel
+(
+�
+�
+,
+�
+�
+,
+�
+�
+)
+,
+FrictionCone
+(
+�
+�
+,
+�
+�
+,
+�
+�
+)
+≤
+0
+,
+OtherConstraints
+(
+�
+�
+,
+�
+�
+,
+�
+�
+)
+≤
+0
+,
+�
+min
+⁡
+≤
+�
+�
+≤
+�
+max
+⁡
+,
+�
+0
+=
+�
+init
+.
+J 
+0
+∗
+​
+ (s 
+init
+​
+ )= 
+s 
+k
+​
+ ,u 
+k
+​
+ ,z 
+k
+​
+ 
+min
+​
+ 
+s.t. 
+​
+  
+ p(s 
+N
+​
+ )+ 
+k=0
+∑
+N−1
+​
+ q(s 
+k
+​
+ ,u 
+k
+​
+ ,z 
+k
+​
+ )
+s 
+k+1
+​
+ =f(s 
+k
+​
+ ,u 
+k
+​
+ ,z 
+k
+​
+ ),k=0,…,N−1,
+0=TireModel(s 
+k
+​
+ ,u 
+k
+​
+ ,z 
+k
+​
+ ),
+FrictionCone(s 
+k
+​
+ ,z 
+k
+​
+ ,u 
+k
+​
+ )≤0,
+OtherConstraints(s 
+k
+​
+ ,z 
+k
+​
+ ,u 
+k
+​
+ )≤0,
+u 
+min
+​
+ ≤u 
+k
+​
+ ≤u 
+max
+​
+ ,
+x 
+0
+​
+ =x 
+init
+​
+ .
+​
+ 
 
 
 
