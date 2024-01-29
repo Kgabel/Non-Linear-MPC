@@ -11,7 +11,12 @@ This repository contains an implementation of Nonlinear Model Predictive Control
 <img src="CarModel.png" width="1200">
 </div>
 
-
+1. ![MP1](mpc1.png)
+2. ![MP2](mpc2.png)
+3. ![MP3](mpc3.png)
+4. ![MP4](mpc4.png)
+5. ![MP5](mpc5.png)
+6. ![MP6](mpc6.png)
  
 
 
