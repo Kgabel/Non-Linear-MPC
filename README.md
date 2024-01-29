@@ -10,7 +10,11 @@ The key to this problem is to use as much tire forces as possible, while ensurin
 <img src="CarModel.png" width="1200">
 </div>
 
+
+
 We consider the car dynamics with lumped rear and front tire forces. 
+
+
 
 For simplification, we consider the positions and orientation in the world coordinates.  
 
@@ -22,6 +26,8 @@ For simplification, we consider the positions and orientation in the world coord
 \dot{y} & = \sin(\phi)U_x + \sin(\phi)U_y   \\ 
 \dot{\phi} & =r  . \\
 \end{aligned}
+
+
 
 
 We consider the Euler first order integration to discretize the model. 
