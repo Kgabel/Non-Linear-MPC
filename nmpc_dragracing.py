@@ -36,34 +36,34 @@ def nmpc_controller(kappa_table = None):
     Fxr = ca.if_else( ca.fabs(Fxr) >= param["mu_r"] * ca.fabs(Fzr), 
                      param["mu_r"] * ca.fabs(Fzr) * ca.sign(Fxr) ,
                        Fxr)
-    
+ #Applies a conditional to limit the longitudinal force on the front tires based on friction limit.   
     Fyf = tire_model_ctrl(af, Fzf, Fxf, param["C_alpha_f"], param["mu_f"])
     Fyr = tire_model_ctrl(ar, Fzr, Fxr, param["C_alpha_r"], param["mu_r"])
 
-
+#Calculates lateral tire forces (Fyf, Fyr) using a tire model function.
 
     dUx  = (Fxf * ca.cos(delta) - zm[0] * ca.sin(delta) + Fxr - Fd) / param["m"] + xm[2] * xm[1]
     dUy  = (zm[0] * ca.cos(delta) + Fxf * ca.sin(delta) + zm[1] + Fb) / param["m"] - xm[2] * xm[0]
     dr   = (param["L_f"] * (zm[0] * ca.cos(delta) + Fxf * ca.sin(delta)) - param["L_r"] * zm[1]) / param["Izz"] 
-    
+#Defines the dynamics of longitudinal velocity (dUx), lateral velocity (dUy), and yaw rate (dr).    
     dx   = ca.cos(xm[5]) * xm[0] - ca.sin(xm[5]) * xm[1]
     dy   = ca.sin(xm[5]) * xm[0] + ca.cos(xm[5]) * xm[1]
     dyaw = xm[2]
     xdot = ca.vertcat(dUx, dUy, dr, dx, dy, dyaw)
-
+#Defines the differential equations for the state variables (xdot).
     xkp1 = xdot * h + xm
     Fun_dynmaics_dt = ca.Function('f_dt', [xm, um, zm], [xkp1])
-
+#Creates a function (Fun_dynmaics_dt) that computes the state at the next time step.
     # enforce constraints for auxiliary variable z[0] = Fyf
     alg  = ca.vertcat(zm[0]-Fyf, zm[1]-Fyr)
     Fun_alg = ca.Function('alg', [xm, um, zm], [alg])
-    
+#Defines auxiliary equations enforcing constraints, such as zm[0] = Fyf and zm[1] = Fyr.
     ###################### MPC variables ######################
     x = ca.MX.sym('x', (Dim_state, N + 1))
     u = ca.MX.sym('u', (Dim_ctrl, N))
     z = ca.MX.sym('z', (Dim_aux, N))
     p = ca.MX.sym('p', (Dim_state, 1))
-
+#Defines decision variables for the MPC optimization problem. x, u, and z represent state, control inputs, and auxiliary variables over the prediction horizon, respectively. p represents the initial state of the system.
     ###################### MPC constraints start ######################
     ## MPC equality constraints ##
     cons_dynamics = []
@@ -74,7 +74,7 @@ def nmpc_controller(kappa_table = None):
             cons_dynamics.append(x[j, k+1] - xkp1[j])
         for j in range(2):
             cons_dynamics.append(Fy2[j])
-    
+    #Defines equality constraints enforcing system dynamics and auxiliary variable constraints for each time step within the prediction horizon.
     ## MPC inequality constraints ##
     # G(x) <= 0
     cons_ineq = []
@@ -82,17 +82,17 @@ def nmpc_controller(kappa_table = None):
 
     ## state / inputs limits:
     for k in range(N):
-        ## TODO: minimal longitudinal speed
+        ##: minimal longitudinal speed
         cons_ineq.append(2-x[0,k])
 
-        ## TODO: engine power limits
+        ##: engine power limits
         c1 = u[0,k]-param['Peng']/x[0,k]
         cons_ineq.append(c1)
 
         c1 = 1 - ((x[3,k]-500)/11)**2 - (x[4,k]/11)**2
         cons_ineq.append(c1)
 
-
+#Defines inequality constraints enforcing system limits and constraints for each time step within the prediction horizon.
     ## friction cone constraints
     for k in range(N):
         Fx    = u[0, k]
@@ -114,7 +114,7 @@ def nmpc_controller(kappa_table = None):
 
         cons_ineq.append(c1f)## front tire limits)
         cons_ineq.append(c1r)## reat  tire limits)        
-
+#Defines inequality constraints enforcing friction cone limits for each time step within the prediction horizon.
     ###################### MPC cost start ######################
     ## cost function design
     lane_t = (x[4,-1])**2
@@ -124,6 +124,7 @@ def nmpc_controller(kappa_table = None):
     J = 0.0
     J = J + lane_t*100 + x[5,-1]**2*50 + 50*v_t + 50*x_t ##terminal cost
     #J = J + (x[4,-1])**2*50 + x[5,-1]**2*50 + (x[0,-1]-1e2)**2 + (x[3,-1]-1e2)**2 ##terminal cost
+    #Defines the cost function for the optimization problem, including terminal cost terms based on the final state of the prediction horizon.
     ## road tracking 
     for k in range(N):
         lane_r = (x[4,k])**2
@@ -132,7 +133,7 @@ def nmpc_controller(kappa_table = None):
 
         #J = J + (x[4,k])**2*5 + x[5,k]**2*5 + (x[0,k]-1e2)**2*0.5 + (x[3,k]-1e2)**2*0.5
         J = J + lane_r*500 + x[5,k]**2*5 + 5*v_r + 5*x_r ##  running cost
-
+#Defines the running cost terms for the optimization problem, considering tracking performance over the prediction horizon
     ## excessive slip angle / friction5*
     for k in range(N):
         Fx = u[0, k]
@@ -160,7 +161,7 @@ def nmpc_controller(kappa_table = None):
         J = J + (ca.if_else( ca.fabs(af) >= alpha_mod_f, ca.fabs(af)-alpha_mod_f ,0))*1e8   # Avoid front tire saturation
         J = J + (ca.if_else( ca.fabs(ar) >= alpha_mod_r, ca.fabs(ar)-alpha_mod_r ,0))*1e8   ## Avoid  rear tire saturation
         J = J + 1e8*z[2,k]**2+1e8*z[3,k]**2    ## Penalize slack variable for friction cone limits
-
+#Defines penalty terms for excessive slip angles and friction cone violations.
     # initial condition as parameters
     cons_init = [x[:, 0] - p]
     ub_init_cons = np.zeros((Dim_state, 1))
